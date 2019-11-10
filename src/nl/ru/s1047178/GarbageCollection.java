@@ -71,6 +71,11 @@ import java.util.Scanner;
 class GarbageCollection {
 
     /**
+     * Maximum number of streets that meet on an intersection.
+     */
+    private static final int MAX_STREETS = 4;
+
+    /**
      * Number of streets in Nijmegen.
      * Assuming graph G = (V,E), where E is the edge set, streets
      * represents the size of E.
@@ -105,7 +110,7 @@ class GarbageCollection {
         this.binCount = k;
 
         intersections = new Node[intersectionCount];
-        for (int i = 1; i <= intersectionCount; i++) {
+        for (int i = 0; i < intersectionCount; i++) {
             intersections[i] = new Node(i);
         }
     }
@@ -115,11 +120,29 @@ class GarbageCollection {
         int index;
 
         // neighbouring intersections
-        Node[] neighbours;
+        Node[] neighbors;
 
         Node(int i) {
             this.index = i;
-            this.neighbours = new Node[4];  // max 4 streets per intersection
+            this.neighbors = new Node[MAX_STREETS];
+        }
+
+        /**
+         * @return first null neighbor or -1 if all neighbors are occupied.
+         */
+        int findFirstEmptyNeighbor() {
+            for (int i = 0; i < neighbors.length; i++)
+                if (neighbors[i] == null) return i;
+            return -1;
+        }
+
+        void printNode() {
+            System.out.printf("Node %d's neighbors: ", index);
+            int terminalNeighbor = findFirstEmptyNeighbor();
+            for (int i = 0; i < terminalNeighbor || (terminalNeighbor == -1 && i < MAX_STREETS); i++) {
+                System.out.printf("%d ", neighbors[i].index);
+            }
+            System.out.println("\n");
         }
     }
 
@@ -131,21 +154,23 @@ class GarbageCollection {
     boolean isPossible() {
         int[][] maximalIndependentSets = getMaximalIndependentSets();
         int maxNumberOfBins = getSizeOfMaximumIndependentSet(maximalIndependentSets);
+        createGraph();
+        for (Node intersection : intersections) {
+            intersection.printNode();
+        }
+        // TODO
         return maxNumberOfBins >= binCount;
-        //return false;
     }
 
-    private Node createGraph() {
+    private void createGraph() {
         Scanner input = new Scanner(System.in);
-
         for (int i = 0; i < streetCount; ++i) {
             int[] street = TextParser.getParsedInput(input.nextLine().split(" "));
-            for (int intersection : street) {
-                // TODO initialize intersections[]
-                
-            }
+
+            Node is1 = intersections[street[0]];
+            Node is2 = intersections[street[1]];
+            is1.neighbors[is1.findFirstEmptyNeighbor()] = is2;
         }
-        return null;
     }
 
     // maybe not optimal solution but will work
