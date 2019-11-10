@@ -1,5 +1,9 @@
 package nl.ru.s1047178;
 
+import nl.ru.s1047178.utils.TextParser;
+
+import java.util.Scanner;
+
 /**
  * This application is an assignment for the course Algorithm and Data Structures
  * at Radboud University (Nijmegen). The assignment is the first practical assignment
@@ -71,24 +75,39 @@ class GarbageCollection {
      * Assuming graph G = (V,E), where E is the edge set, streets
      * represents the size of E.
      */
-    private int streets;
+    private int streetCount;
 
     /**
      * Number of intersections in Nijmegen.
      * Assuming graph G = (V,E), where V is the vertex set, intersections
      * represents the size of V.
      */
-    private int intersections;
+    private int intersectionCount;
 
     /**
      * Number of ordered garbage bins.
      */
-    private int bins;
+    private int binCount;
 
+    /**
+     * Intersections with their neighbours initialized.
+     */
+    private Node[] intersections;
+
+    /**
+     * @param n number of streets
+     * @param m number of intersections
+     * @param k number of bins
+     */
     GarbageCollection(int n, int m, int k) {
-        this.streets = n;
-        this.intersections = m;
-        this.bins = k;
+        this.streetCount = n;
+        this.intersectionCount = m;
+        this.binCount = k;
+
+        intersections = new Node[intersectionCount];
+        for (int i = 1; i <= intersectionCount; i++) {
+            intersections[i] = new Node(i);
+        }
     }
 
     private static class Node {
@@ -112,8 +131,21 @@ class GarbageCollection {
     boolean isPossible() {
         int[][] maximalIndependentSets = getMaximalIndependentSets();
         int maxNumberOfBins = getSizeOfMaximumIndependentSet(maximalIndependentSets);
-        return maxNumberOfBins >= bins;
+        return maxNumberOfBins >= binCount;
         //return false;
+    }
+
+    private Node createGraph() {
+        Scanner input = new Scanner(System.in);
+
+        for (int i = 0; i < streetCount; ++i) {
+            int[] street = TextParser.getParsedInput(input.nextLine().split(" "));
+            for (int intersection : street) {
+                // TODO initialize intersections[]
+                
+            }
+        }
+        return null;
     }
 
     // maybe not optimal solution but will work
