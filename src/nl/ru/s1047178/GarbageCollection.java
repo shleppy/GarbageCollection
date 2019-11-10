@@ -137,12 +137,12 @@ class GarbageCollection {
         }
 
         void printNode() {
-            System.out.printf("Node %d's neighbors: ", index);
+            System.out.printf("Intersection [%d] neighbors: ", index + 1);
             int terminalNeighbor = findFirstEmptyNeighbor();
             for (int i = 0; i < terminalNeighbor || (terminalNeighbor == -1 && i < MAX_STREETS); i++) {
-                System.out.printf("%d ", neighbors[i].index);
+                System.out.printf("%d ", neighbors[i].index + 1);
             }
-            System.out.println("\n");
+            System.out.println();
         }
     }
 
@@ -167,14 +167,16 @@ class GarbageCollection {
         for (int i = 0; i < streetCount; ++i) {
             int[] street = TextParser.getParsedInput(input.nextLine().split(" "));
 
-            Node is1 = intersections[street[0]];
-            Node is2 = intersections[street[1]];
+            Node is1 = intersections[street[0] - 1];
+            Node is2 = intersections[street[1] - 1];
             is1.neighbors[is1.findFirstEmptyNeighbor()] = is2;
+            is2.neighbors[is2.findFirstEmptyNeighbor()] = is1;
         }
     }
 
     // maybe not optimal solution but will work
     private int[][] getMaximalIndependentSets() {
+
         return null;
     }
 
