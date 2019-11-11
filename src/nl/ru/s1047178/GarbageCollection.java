@@ -152,7 +152,6 @@ class GarbageCollection {
         }
     }
 
-    // TODO implement algorithm
     // The idea is to find the largest subset S of graph G(V,E) where no two vertices
     // in the set S represent an edge in G and then check if the size of S
     // is larger than k. Thus, S is maximal if there exists no subset of S
@@ -181,25 +180,28 @@ class GarbageCollection {
         }
     }
 
+    /**
+     * Recursively finds the max independent set in G(V,E).
+     * @param intersections V
+     * @return a(G), where a is the independent number, otherwise known
+     * as the size of the maximum independent set.
+     */
     private int maxIndependentSet(List<Node> intersections) {
         int vertexDegree = intersections.get(0).neighbors.length;
         switch (vertexDegree) {
-            case 0:
-                intersections.remove(0);
-                return maxIndependentSet(intersections);
-            case 1:
-                handleFirstDegree(intersections);
-                return maxIndependentSet(intersections);
-            case 2:
-
-            case 3:
-
-            case 4:
-
+            case 0: handleZeroethDegree(intersections);
+            case 1: handleFirstDegree(intersections);
+            case 2: handleSecondDegree(intersections);
+            case 3: handleThirdDegree(intersections);
+            case 4: handleFourthDegree(intersections);
             default:
                 System.out.println("Found the edge case.");
         }
-        return -1;
+        return maxIndependentSet(intersections);
+    }
+
+    private void handleZeroethDegree(List<Node> intersections) {
+        intersections.remove(0);
     }
 
     private void handleFirstDegree(List<Node> intersections) {
@@ -219,6 +221,4 @@ class GarbageCollection {
     private void handleFourthDegree(List<Node> intersections) {
 
     }
-
-
 }
