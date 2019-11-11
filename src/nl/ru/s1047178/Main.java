@@ -3,7 +3,6 @@ package nl.ru.s1047178;
 import nl.ru.s1047178.utils.TextParser;
 
 import java.util.Scanner;
-import java.util.stream.Stream;
 
 public class Main {
 

@@ -4,7 +4,11 @@ import java.util.stream.Stream;
 
 public class TextParser {
 
-    // Helper method to get the integers from the raw input
+    /**
+     * Helper method to transform an array of strings into an array of integers
+     * @param input
+     * @return
+     */
     public static int[] getParsedInput(String[] input) {
         return Stream.of(input).mapToInt(Integer::parseInt).toArray();
     }

@@ -2,7 +2,7 @@ package nl.ru.s1047178;
 
 import nl.ru.s1047178.utils.TextParser;
 
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * This application is an assignment for the course Algorithm and Data Structures
@@ -97,7 +97,7 @@ class GarbageCollection {
     /**
      * Intersections with their neighbours initialized.
      */
-    private Node[] intersections;
+    private List<Node> intersections;
 
     /**
      * @param n number of streets
@@ -109,13 +109,13 @@ class GarbageCollection {
         this.intersectionCount = m;
         this.binCount = k;
 
-        intersections = new Node[intersectionCount];
+        intersections = new ArrayList<>();
         for (int i = 0; i < intersectionCount; i++) {
-            intersections[i] = new Node(i);
+            intersections.add(new Node(i));
         }
     }
 
-    private static class Node {
+    private static class Node implements Comparable<Node> {
         // intersection index
         int index;
 
@@ -144,6 +144,12 @@ class GarbageCollection {
             }
             System.out.println();
         }
+
+        @Override
+        public int compareTo(Node node) {
+            // perhaps more efficient to use ArrayList and retrieve size than this.
+            return node.findFirstEmptyNeighbor() - this.findFirstEmptyNeighbor();
+        }
     }
 
     // TODO implement algorithm
@@ -152,14 +158,15 @@ class GarbageCollection {
     // is larger than k. Thus, S is maximal if there exists no subset of S
     // in G that abides the aforementioned rule.
     boolean isPossible() {
-        int[][] maximalIndependentSets = getMaximalIndependentSets();
-        int maxNumberOfBins = getSizeOfMaximumIndependentSet(maximalIndependentSets);
         createGraph();
         for (Node intersection : intersections) {
             intersection.printNode();
         }
-        // TODO
-        return maxNumberOfBins >= binCount;
+
+        // Sort by order of minimum degree
+        Collections.sort(intersections);
+
+        return maxIndependentSet(intersections) >= binCount;
     }
 
     private void createGraph() {
@@ -167,22 +174,51 @@ class GarbageCollection {
         for (int i = 0; i < streetCount; ++i) {
             int[] street = TextParser.getParsedInput(input.nextLine().split(" "));
 
-            Node is1 = intersections[street[0] - 1];
-            Node is2 = intersections[street[1] - 1];
+            Node is1 = intersections.get(street[0] - 1);
+            Node is2 = intersections.get(street[1] - 1);
             is1.neighbors[is1.findFirstEmptyNeighbor()] = is2;
             is2.neighbors[is2.findFirstEmptyNeighbor()] = is1;
         }
     }
 
-    // maybe not optimal solution but will work
-    private int[][] getMaximalIndependentSets() {
+    private int maxIndependentSet(List<Node> intersections) {
+        int vertexDegree = intersections.get(0).neighbors.length;
+        switch (vertexDegree) {
+            case 0:
+                intersections.remove(0);
+                return maxIndependentSet(intersections);
+            case 1:
+                handleFirstDegree(intersections);
+                return maxIndependentSet(intersections);
+            case 2:
 
-        return null;
+            case 3:
+
+            case 4:
+
+            default:
+                System.out.println("Found the edge case.");
+        }
+        return -1;
     }
 
-    // check which maximal independent set is the largest and return the size
-    private int getSizeOfMaximumIndependentSet(int[][] maximalIndependentSets) {
-        return 0;
+    private void handleFirstDegree(List<Node> intersections) {
+        Node neighbor = intersections.get(0).neighbors[0];
+        intersections.remove(neighbor);
+        intersections.remove(0);
     }
+
+    private void handleSecondDegree(List<Node> intersections) {
+
+    }
+
+    private void handleThirdDegree(List<Node> intersections) {
+
+    }
+
+    private void handleFourthDegree(List<Node> intersections) {
+
+    }
+
 
 }
