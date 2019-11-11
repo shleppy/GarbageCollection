@@ -120,19 +120,19 @@ class GarbageCollection {
         int index;
 
         // neighbouring intersections
-        Node[] neighbors;
+        List<Node> neighbors;
 
         Node(int i) {
             this.index = i;
-            this.neighbors = new Node[MAX_STREETS];
+            this.neighbors = new ArrayList<>();
         }
 
         /**
-         * @return first null neighbor or -1 if all neighbors are occupied.
+         * @return first null neighbor index or -1 if all neighbors are occupied.
          */
         int findFirstEmptyNeighbor() {
-            for (int i = 0; i < neighbors.length; i++)
-                if (neighbors[i] == null) return i;
+            for (int i = 0; i < neighbors.size(); i++)
+                if (neighbors.get(i) == null) return i;
             return -1;
         }
 
@@ -143,7 +143,7 @@ class GarbageCollection {
          */
         boolean isNeighborOf(Node n) {
             for (int i = 0; i < MAX_STREETS; i++) {
-                if (neighbors[i] == n) return true;
+                if (neighbors.get(i) == n) return true;
             }
             return false;
         }
@@ -152,15 +152,13 @@ class GarbageCollection {
          * @return number of edges
          */
         int getDegree() {
-            int emptySpot = findFirstEmptyNeighbor();
-            return emptySpot == -1 ? 0 : emptySpot;
+            return neighbors.size();
         }
 
         void printNode() {
             System.out.printf("Intersection [%d] neighbors: ", index + 1);
-            int terminalNeighbor = findFirstEmptyNeighbor();
-            for (int i = 0; i < terminalNeighbor || (terminalNeighbor == -1 && i < MAX_STREETS); i++) {
-                System.out.printf("%d ", neighbors[i].index + 1);
+            for (Node neighbor : neighbors) {
+                System.out.printf("%d ", neighbor.index + 1);
             }
             System.out.println();
         }
@@ -168,8 +166,9 @@ class GarbageCollection {
         @Override
         public int compareTo(Node node) {
             // perhaps more efficient to use ArrayList and retrieve size than this.
-            return node.findFirstEmptyNeighbor() - this.findFirstEmptyNeighbor();
+            return this.getDegree() - node.getDegree();
         }
+
     }
 
     /**
@@ -181,14 +180,18 @@ class GarbageCollection {
      */
     boolean isPossible() {
         createGraph();
-        for (Node intersection : intersections) {
-            intersection.printNode();
-        }
 
         // Sort by order of minimum degree
         Collections.sort(intersections);
 
-        return maxIndependentSet(intersections) >= binCount;
+        for (Node intersection : intersections) {
+            intersection.printNode();
+        }
+
+        int independenceNumber = maxIndependentSet(intersections);
+        System.out.printf("Independence number: %d\n", independenceNumber);
+
+        return independenceNumber >= binCount;
     }
 
     /**
@@ -201,8 +204,8 @@ class GarbageCollection {
 
             Node is1 = intersections.get(street[0] - 1);
             Node is2 = intersections.get(street[1] - 1);
-            is1.neighbors[is1.findFirstEmptyNeighbor()] = is2;
-            is2.neighbors[is2.findFirstEmptyNeighbor()] = is1;
+            is1.neighbors.add(is2);
+            is2.neighbors.add(is1);
         }
     }
 
@@ -215,9 +218,10 @@ class GarbageCollection {
      * as the size of the maximum independent set.
      */
     private int maxIndependentSet(List<Node> intersections) {
+        if (intersections.size() == 0) return 0;
         int vertexDegree = intersections.get(0).getDegree();
         switch (vertexDegree) {
-            case 0: handleZerothDegree(intersections);
+            case 0: return handleZerothDegree(intersections);
             case 1: return handleFirstDegree(intersections);
             case 2: return handleSecondDegree(intersections);
             case 3: return handleThirdDegree(intersections);
@@ -230,32 +234,36 @@ class GarbageCollection {
     }
 
     // Case: all remaining vertices have a degree >= 0
-    private void handleZerothDegree(List<Node> intersections) {
+    private int handleZerothDegree(List<Node> intersections) {
         intersections.remove(0);
-        intersectionCount--;
+
+        Collections.sort(intersections);
+        return 1 + maxIndependentSet(intersections);
     }
 
     // Case: all remaining vertices have a degree >= 1
     private int handleFirstDegree(List<Node> intersections) {
-        Node neighbor = intersections.get(0).neighbors[0];
-        intersections.remove(neighbor);
-        intersections.remove(0);
-        intersectionCount -= 2;
+        Node neighbor = intersections.get(0).neighbors.get(0);
+        removeFromV(intersections, neighbor);
+        removeFromV(intersections, intersections.get(0));
+
+        Collections.sort(intersections);
         return 1 + maxIndependentSet(intersections);
     }
 
     // Case: all remaining vertices have a degree >= 2
     private int handleSecondDegree(List<Node> intersections) {
-        Node neighbor1 = intersections.get(0).neighbors[0];
-        Node neighbor2 = intersections.get(0).neighbors[1];
+        Node neighbor1 = intersections.get(0).neighbors.get(0);
+        Node neighbor2 = intersections.get(0).neighbors.get(1);
 
         if (remainingVisCycle(intersections)) {
             return intersectionCount / 2;
         } else if (neighbor1.isNeighborOf(neighbor2)) {
-            intersections.remove(neighbor1);
-            intersections.remove(neighbor2);
-            intersections.remove(0);
-            intersectionCount -= 3;
+            removeFromV(intersections, neighbor1);
+            removeFromV(intersections, neighbor2);
+            removeFromV(intersections, intersections.get(0));
+
+            Collections.sort(intersections);
             return 1 + maxIndependentSet(intersections);
         } else {
             List<Node> isCopyOne = secondDegreeEdgeSet(intersections);
@@ -271,9 +279,9 @@ class GarbageCollection {
     private int handleThirdDegree(List<Node> intersections) {
         // a_1..a_n are adjacent vertices to vertex v.
         Node v = intersections.get(0);
-        Node a1 = v.neighbors[0];
-        Node a2 = v.neighbors[1];
-        Node a3 = v.neighbors[2];
+        Node a1 = v.neighbors.get(0);
+        Node a2 = v.neighbors.get(1);
+        Node a3 = v.neighbors.get(2);
 
         // booleans representing neighbours e.g a1 Neighbors a2 etc.
         boolean a1Na2 = a1.isNeighborOf(a2);
@@ -322,18 +330,32 @@ class GarbageCollection {
             List<Node> isCopyOne = new ArrayList<>(intersections);
             Node v = isCopyOne.get(0);
             for (Node neighbor : v.neighbors) {
-                isCopyOne.remove(neighbor);
+                removeFromV(isCopyOne, neighbor);
             }
-            isCopyOne.remove(0);
+            removeFromV(isCopyOne, isCopyOne.get(0));
+            Collections.sort(isCopyOne);
             int maxCandidateOne = 1 + maxIndependentSet(isCopyOne);
 
             List<Node> isCopyTwo = new ArrayList<>(intersections);
-            isCopyTwo.remove(v);
+            removeFromV(isCopyTwo, v);
+            Collections.sort(isCopyTwo);
             int maxCandidateTwo = maxIndependentSet(isCopyTwo);
 
             return Math.max(maxCandidateOne, maxCandidateTwo);
         }
         return -1; // impossible.. hopefully
+    }
+
+    private void removeFromV(List<Node> intersections, Node v) {
+        intersections.remove(v);
+        for (Node intersection : intersections) {
+            for (Node neighbor : intersection.neighbors) {
+                if (neighbor == v) {
+                    intersection.neighbors.remove(neighbor);
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -364,9 +386,11 @@ class GarbageCollection {
         List<Node> isCopyOne = new ArrayList<>(intersections);
 
         // remove v and its two neighbors
-        isCopyOne.remove(isCopyOne.get(0).neighbors[0]);
-        isCopyOne.remove(isCopyOne.get(0).neighbors[1]);
-        isCopyOne.remove(isCopyOne.get(0));
+        removeFromV(isCopyOne, isCopyOne.get(0).neighbors.get(0));
+        removeFromV(isCopyOne, isCopyOne.get(0).neighbors.get(1));
+        removeFromV(isCopyOne, isCopyOne.get(0));
+
+        Collections.sort(isCopyOne);
         return isCopyOne;
     }
 
@@ -386,24 +410,26 @@ class GarbageCollection {
         // Find all neighbors of adjacent nodes to v
         List<Node> neighborsOfNeighbors = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
-            for (Node nOfn : isCopyTwo.get(0).neighbors[i].neighbors) {
+            for (Node nOfn : isCopyTwo.get(0).neighbors.get(i).neighbors) {
                 if (nOfn != null) neighborsOfNeighbors.add(nOfn);
             }
         }
 
         // Remove all neighbors of neighbors
         for (Node neighborsOfNeighbor : neighborsOfNeighbors) {
-            isCopyTwo.remove(neighborsOfNeighbor);
+            removeFromV(isCopyTwo, neighborsOfNeighbor);
         }
 
+        Collections.sort(isCopyTwo);
         return isCopyTwo;
     }
 
     private int thirdDegreeAllEdgesSet(List<Node> intersections, Node a1, Node a2, Node a3) {
-        intersections.remove(a1);
-        intersections.remove(a2);
-        intersections.remove(a3);
-        intersections.remove(intersections.get(0));
+        removeFromV(intersections, a1);
+        removeFromV(intersections, a2);
+        removeFromV(intersections, a3);
+        removeFromV(intersections, intersections.get(0));
+        Collections.sort(intersections);
         return 1 + maxIndependentSet(intersections);
     }
 
@@ -416,19 +442,21 @@ class GarbageCollection {
      */
     private int thirdDegreeTwoEdgesSet(List<Node> intersections, Node a1, Node a2, Node a3) {
         List<Node> isCopyOne = new ArrayList<>(intersections);
-        isCopyOne.remove(a1);
-        isCopyOne.remove(a2);
-        isCopyOne.remove(a3);
-        isCopyOne.remove(intersections.get(0));
+        removeFromV(isCopyOne, a1);
+        removeFromV(isCopyOne, a2);
+        removeFromV(isCopyOne, a3);
+        removeFromV(isCopyOne, intersections.get(0));
+        Collections.sort(isCopyOne);
         int maxCandidateOne = 1 + maxIndependentSet(isCopyOne);
 
         List<Node> isCopyTwo = new ArrayList<>(intersections);
         for (Node neighbor : a2.neighbors) {
-            isCopyTwo.remove(neighbor);
+            removeFromV(isCopyTwo, neighbor);
         }
         for (Node neighbor : a3.neighbors) {
-            isCopyTwo.remove(neighbor);
+            removeFromV(isCopyTwo, neighbor);
         }
+        Collections.sort(isCopyTwo);
         int maxCandidateTwo = 2 + maxIndependentSet(isCopyTwo);
 
         return Math.max(maxCandidateOne, maxCandidateTwo);
