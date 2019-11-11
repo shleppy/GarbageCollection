@@ -245,7 +245,6 @@ class GarbageCollection {
 
     // Case: all remaining vertices have a degree >= 2
     private int handleSecondDegree(List<Node> intersections) {
-        // TODO refactor and clean up
         Node neighbor1 = intersections.get(0).neighbors[0];
         Node neighbor2 = intersections.get(0).neighbors[1];
 
@@ -258,8 +257,8 @@ class GarbageCollection {
             intersectionCount -= 3;
             return 1 + maxIndependentSet(intersections);
         } else {
-            List<Node> isCopyOne = getSecondDegreeHasEdgeSet(intersections);
-            List<Node> isCopyTwo = getSecondDegreeHasNoEdgeSet(intersections)
+            List<Node> isCopyOne = secondDegreeEdgeSet(intersections);
+            List<Node> isCopyTwo = secondDegreeNoEdgeSet(intersections);
 
             int maxCandidateOne = 1 + maxIndependentSet(isCopyOne);
             int maxCandidateTwo = 2 + maxIndependentSet(isCopyTwo);
@@ -275,20 +274,38 @@ class GarbageCollection {
         Node a2 = v.neighbors[1];
         Node a3 = v.neighbors[2];
 
-        if (a1.isNeighborOf(a2) && a1.isNeighborOf(a3) && a2.isNeighborOf(a3)) {
-            intersections.remove(a1);
-            intersections.remove(a2);
-            intersections.remove(a3);
-            intersections.remove(v);
-            return 1 + maxIndependentSet(intersections);
+        // case 0: all neighbours are adjacent
+        boolean allNeighborsAdjacent =
+                a1.isNeighborOf(a2)
+                && a1.isNeighborOf(a3)
+                && a2.isNeighborOf(a3);
+
+        if (allNeighborsAdjacent) {
+           return thirdDegreeAllEdgesSet(intersections, a1, a2, a3);
         }
-        // TODO 2.1
+
+        // case 1: two edges exist between neighbors
+        if (a1.isNeighborOf(a2) && a1.isNeighborOf(a3)) {
+            return thirdDegreeTwoEdgesSet(intersections, a1, a2, a3);
+        }
+
+        if (a2.isNeighborOf(a1) && a2.isNeighborOf(a3)) {
+            return thirdDegreeTwoEdgesSet(intersections, a2, a1, a3);
+        }
+
+        if (a3.isNeighborOf(a1) && a3.isNeighborOf(a2)) {
+            return thirdDegreeTwoEdgesSet(intersections, a3, a1, a2);
+        }
+
+        // case 2: one edge exists between neighbors
+
+
         return -1;
     }
 
     // Case: all remaining vertices have a degree = 4
     private void handleFourthDegree(List<Node> intersections) {
-        return;
+
     }
 
     /**
@@ -314,7 +331,7 @@ class GarbageCollection {
      * @param intersections the remaining vertices
      * @return A deep copy of intersections, where vertex v and its neighbors are removed.
      */
-    private List<Node> getSecondDegreeHasEdgeSet(List<Node> intersections) {
+    private List<Node> secondDegreeEdgeSet(List<Node> intersections) {
         // Create a deep copy of intersections to make them independently mutable
         List<Node> isCopyOne = new ArrayList<>(intersections);
 
@@ -334,7 +351,7 @@ class GarbageCollection {
      * @return A deep copy of intersections, where all neighbors of neighbors of v
      * have been removed.
      */
-    private List<Node> getSecondDegreeHasNoEdgeSet(List<Node> intersections) {
+    private List<Node> secondDegreeNoEdgeSet(List<Node> intersections) {
         // Create a deep copy of intersections to make them independently mutable
         List<Node> isCopyTwo = new ArrayList<>(intersections);
 
@@ -352,6 +369,41 @@ class GarbageCollection {
         }
 
         return isCopyTwo;
+    }
+
+    private int thirdDegreeAllEdgesSet(List<Node> intersections, Node a1, Node a2, Node a3) {
+        intersections.remove(a1);
+        intersections.remove(a2);
+        intersections.remove(a3);
+        intersections.remove(intersections.get(0));
+        return 1 + maxIndependentSet(intersections);
+    }
+
+    /**
+     * @param intersections remaining vertices
+     * @param n1 first node of which all neighbors should be removed
+     * @param n2 second node of which all neighbors should be removed
+     * @param n3 remaining adjacent node
+     * @return the independent number of the remaining set
+     */
+    private int thirdDegreeTwoEdgesSet(List<Node> intersections, Node a1, Node a2, Node a3) {
+        List<Node> isCopyOne = new ArrayList<>(intersections);
+        isCopyOne.remove(a1);
+        isCopyOne.remove(a2);
+        isCopyOne.remove(a3);
+        isCopyOne.remove(intersections.get(0));
+        int maxCandidateOne = 1 + maxIndependentSet(isCopyOne);
+
+        List<Node> isCopyTwo = new ArrayList<>(intersections);
+        for (Node neighbor : a1.neighbors) {
+            isCopyTwo.remove(neighbor);
+        }
+        for (Node neighbor : a2.neighbors) {
+            isCopyTwo.remove(neighbor);
+        }
+        int maxCandidateTwo = 2 + maxIndependentSet(isCopyTwo);
+
+        return Math.max(maxCandidateOne, maxCandidateTwo);
     }
 
 }
