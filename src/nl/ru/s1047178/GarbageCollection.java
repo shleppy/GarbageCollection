@@ -274,31 +274,42 @@ class GarbageCollection {
         Node a2 = v.neighbors[1];
         Node a3 = v.neighbors[2];
 
+        // booleans representing neighbours e.g a1 Neighbors a2 etc.
+        boolean a1Na2 = a1.isNeighborOf(a2);
+        boolean a1Na3 = a1.isNeighborOf(a3);
+        boolean a2Na3 = a2.isNeighborOf(a2);
+
         // case 0: all neighbours are adjacent
         boolean allNeighborsAdjacent =
-                a1.isNeighborOf(a2)
-                && a1.isNeighborOf(a3)
-                && a2.isNeighborOf(a3);
+                a1Na2 && a1Na3 && a2Na3;
 
         if (allNeighborsAdjacent) {
            return thirdDegreeAllEdgesSet(intersections, a1, a2, a3);
         }
 
         // case 1: two edges exist between neighbors
-        if (a1.isNeighborOf(a2) && a1.isNeighborOf(a3)) {
+        if (a1Na2 && a1Na3) {
             return thirdDegreeTwoEdgesSet(intersections, a1, a2, a3);
         }
 
-        if (a2.isNeighborOf(a1) && a2.isNeighborOf(a3)) {
+        if (a1Na2 && a2Na3) {
             return thirdDegreeTwoEdgesSet(intersections, a2, a1, a3);
         }
 
-        if (a3.isNeighborOf(a1) && a3.isNeighborOf(a2)) {
+        if (a1Na3 && a2Na3) {
             return thirdDegreeTwoEdgesSet(intersections, a3, a1, a2);
         }
 
         // case 2: one edge exists between neighbors
-
+        if (a1Na2) {
+            return thirdDegreeOneEdgeSet(intersections, a1, a2, a3);
+        }
+        if (a1Na3) {
+            return thirdDegreeOneEdgeSet(intersections, a1, a3, a2);
+        }
+        if (a2Na3) {
+            return thirdDegreeOneEdgeSet(intersections, a2, a3, a1);
+        }
 
         return -1;
     }
@@ -395,15 +406,22 @@ class GarbageCollection {
         int maxCandidateOne = 1 + maxIndependentSet(isCopyOne);
 
         List<Node> isCopyTwo = new ArrayList<>(intersections);
-        for (Node neighbor : a1.neighbors) {
+        for (Node neighbor : a2.neighbors) {
             isCopyTwo.remove(neighbor);
         }
-        for (Node neighbor : a2.neighbors) {
+        for (Node neighbor : a3.neighbors) {
             isCopyTwo.remove(neighbor);
         }
         int maxCandidateTwo = 2 + maxIndependentSet(isCopyTwo);
 
         return Math.max(maxCandidateOne, maxCandidateTwo);
+    }
+
+    private int thirdDegreeOneEdgeSet(List<Node> intersections, Node a1, Node a2, Node a3) {
+        //copy for checking set is better
+        List<Node> isCopyOne = new ArrayList<>(intersections);
+        //TODO
+        return 2;
     }
 
 }
