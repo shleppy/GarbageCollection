@@ -437,8 +437,58 @@ class GarbageCollection {
     private int thirdDegreeOneEdgeSet(List<Node> intersections, Node a1, Node a2, Node a3) {
         //copy for checking set is better
         List<Node> isCopyOne = new ArrayList<>(intersections);
-        //TODO
-        return 2;
+        //complements of each neighbor
+        List<Node> complementA1 = new ArrayList<>(intersections);
+        List<Node> complementA2 = new ArrayList<>(intersections);
+        List<Node> complementA3 = new ArrayList<>(intersections);
+        //building the compliment a1
+        for (Node neighbor :a1.neighbors) {
+            complementA1.remove(neighbor);
+        }
+        complementA1.remove(a3);
+        complementA1.remove(a1);
+
+        //compliment a2
+        for (Node neighbor :a2.neighbors) {
+            complementA2.remove(neighbor);
+        }
+        complementA2.remove(a1);
+        complementA2.remove(a2);
+
+        //compliment a3
+        for (Node neighbor :a3.neighbors) {
+            complementA3.remove(neighbor);
+        }
+        complementA3.remove(a1);
+        complementA3.remove(a2);
+        complementA3.remove(a3);
+
+        List <Node> candidateCopyOne = new ArrayList<>(intersections);
+        candidateCopyOne.remove(a1);
+        candidateCopyOne.remove(a2);
+        candidateCopyOne.remove(a3);
+        int maxCandidateOne = maxIndependentSet(candidateCopyOne);
+
+        //checking if the intersections of the complements from a1 a3 <=  a2 a3
+        if(intersectingNodes(complementA1,complementA3).size() <= intersectingNodes(complementA2,complementA3).size()){
+            int maxCandidateTwo = maxIndependentSet(complementA3);
+            return Math.max(1+maxCandidateOne,2+maxCandidateTwo);
+        }
+        else {
+            int maxCandidateTwo = maxIndependentSet(intersectingNodes(complementA1,complementA3));
+            int maxCandidateThree = maxIndependentSet(intersectingNodes(complementA2,complementA3));
+            return Math.max(1+maxCandidateOne,Math.max(2+maxCandidateTwo,2+maxCandidateThree));
+        }
+
     }
 
+    private List<Node> intersectingNodes(List<Node> i1, List<Node> i2){
+        List<Node> interNodes = null;
+        for (Node n : i1){
+            if(i2.contains(n)) {
+                interNodes.add(n);
+            }
+        }
+        return interNodes;
+    }
 }
