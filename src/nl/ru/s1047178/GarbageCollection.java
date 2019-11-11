@@ -136,6 +136,18 @@ class GarbageCollection {
             return -1;
         }
 
+        boolean isNeighborOf(Node n) {
+            for (int i = 0; i < MAX_STREETS; i++) {
+                if (neighbors[i] == n) return true;
+            }
+            return false;
+        }
+
+        int getDegree() {
+            int emptySpot = findFirstEmptyNeighbor();
+            return emptySpot == -1 ? 0 : emptySpot;
+        }
+
         void printNode() {
             System.out.printf("Intersection [%d] neighbors: ", index + 1);
             int terminalNeighbor = findFirstEmptyNeighbor();
@@ -187,12 +199,12 @@ class GarbageCollection {
      * as the size of the maximum independent set.
      */
     private int maxIndependentSet(List<Node> intersections) {
-        int vertexDegree = intersections.get(0).neighbors.length;
+        int vertexDegree = intersections.get(0).getDegree();
         switch (vertexDegree) {
-            case 0: handleZeroethDegree(intersections);
-            case 1: handleFirstDegree(intersections);
-            case 2: handleSecondDegree(intersections);
-            case 3: handleThirdDegree(intersections);
+            case 0: handleZerothDegree(intersections);
+            case 1: return handleFirstDegree(intersections);
+            case 2: return handleSecondDegree(intersections);
+            case 3: return handleThirdDegree(intersections);
             case 4: handleFourthDegree(intersections);
             default:
                 System.out.println("Found the edge case.");
@@ -200,22 +212,60 @@ class GarbageCollection {
         return maxIndependentSet(intersections);
     }
 
-    private void handleZeroethDegree(List<Node> intersections) {
+    private void handleZerothDegree(List<Node> intersections) {
         intersections.remove(0);
+        intersectionCount--;
     }
 
-    private void handleFirstDegree(List<Node> intersections) {
+    private int handleFirstDegree(List<Node> intersections) {
         Node neighbor = intersections.get(0).neighbors[0];
         intersections.remove(neighbor);
         intersections.remove(0);
+        intersectionCount -= 2;
+        return 1 + maxIndependentSet(intersections);
     }
 
-    private void handleSecondDegree(List<Node> intersections) {
+    private int handleSecondDegree(List<Node> intersections) {
+        // TODO UNCLEAR
+        Node neighbor1 = intersections.get(0).neighbors[0];
+        Node neighbor2 = intersections.get(0).neighbors[1];
 
+        if (remainingVisCycle(intersections)) {
+            return intersectionCount / 2;
+        } else if (neighbor1.isNeighborOf(neighbor2)) {
+            intersections.remove(neighbor1);
+            intersections.remove(neighbor2);
+            intersections.remove(0);
+            intersectionCount -= 3;
+            return 1 + maxIndependentSet(intersections);
+        } else {
+            return Math.max(1 + maxIndependentSet())
+        }
     }
 
-    private void handleThirdDegree(List<Node> intersections) {
+    // TODO still unclear
+    private boolean remainingVisCycle(List<Node> intersections) {
+        for (int i = 1; i < intersections.size(); i++) {
+            if (intersections.get(i).getDegree() != 2) return false;
+        }
+        return true;
+    }
 
+    private int handleThirdDegree(List<Node> intersections) {
+        // a_1..a_n are adjacent vertices to vertex v.
+        Node v = intersections.get(0);
+        Node a1 = v.neighbors[0];
+        Node a2 = v.neighbors[1];
+        Node a3 = v.neighbors[2];
+
+        if (a1.isNeighborOf(a2) && a1.isNeighborOf(a3) && a2.isNeighborOf(a3)) {
+            intersections.remove(a1);
+            intersections.remove(a2);
+            intersections.remove(a3);
+            intersections.remove(v);
+            return 1 + maxIndependentSet(intersections);
+        }
+        // TODO 2.1
     }
 
     private void handleFourthDegree(List<Node> intersections) {
