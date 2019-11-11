@@ -221,11 +221,12 @@ class GarbageCollection {
             case 1: return handleFirstDegree(intersections);
             case 2: return handleSecondDegree(intersections);
             case 3: return handleThirdDegree(intersections);
-            case 4: handleFourthDegree(intersections);
+            case 4: return handleFourthDegree(intersections);
             default:
                 System.out.println("Found the edge case.");
         }
-        return maxIndependentSet(intersections);
+//        return maxIndependentSet(intersections);
+        return -1;
     }
 
     // Case: all remaining vertices have a degree >= 0
@@ -304,8 +305,24 @@ class GarbageCollection {
     }
 
     // Case: all remaining vertices have a degree = 4
-    private void handleFourthDegree(List<Node> intersections) {
+    private int handleFourthDegree(List<Node> intersections) {
+        if (intersections.size() == 5) return 1;
+        if (intersections.size() > 5) {
+            List<Node> isCopyOne = new ArrayList<>(intersections);
+            Node v = isCopyOne.get(0);
+            for (Node neighbor : v.neighbors) {
+                isCopyOne.remove(neighbor);
+            }
+            isCopyOne.remove(0);
+            int maxCandidateOne = 1 + maxIndependentSet(isCopyOne);
 
+            List<Node> isCopyTwo = new ArrayList<>(intersections);
+            isCopyTwo.remove(v);
+            int maxCandidateTwo = maxIndependentSet(isCopyTwo);
+
+            return Math.max(maxCandidateOne, maxCandidateTwo);
+        }
+        return -1; // impossible.. hopefully
     }
 
     /**
@@ -381,9 +398,9 @@ class GarbageCollection {
 
     /**
      * @param intersections remaining vertices
-     * @param n1 first node of which all neighbors should be removed
-     * @param n2 second node of which all neighbors should be removed
-     * @param n3 remaining adjacent node
+     * @param a1 first node of which all neighbors should be removed
+     * @param a2 second node of which all neighbors should be removed
+     * @param a3 remaining adjacent node
      * @return the independent number of the remaining set
      */
     private int thirdDegreeTwoEdgesSet(List<Node> intersections, Node a1, Node a2, Node a3) {
