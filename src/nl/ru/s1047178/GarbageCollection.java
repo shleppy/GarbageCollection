@@ -136,6 +136,11 @@ class GarbageCollection {
             return -1;
         }
 
+        /**
+         * @param n Node to check if it is a neighbor
+         * @return true if Node n is an adjacent node to this node, that is there exists
+         * an edge between this node v and node n = (v, n) in E.
+         */
         boolean isNeighborOf(Node n) {
             for (int i = 0; i < MAX_STREETS; i++) {
                 if (neighbors[i] == n) return true;
@@ -143,6 +148,9 @@ class GarbageCollection {
             return false;
         }
 
+        /**
+         * @return number of edges
+         */
         int getDegree() {
             int emptySpot = findFirstEmptyNeighbor();
             return emptySpot == -1 ? 0 : emptySpot;
@@ -164,10 +172,13 @@ class GarbageCollection {
         }
     }
 
-    // The idea is to find the largest subset S of graph G(V,E) where no two vertices
-    // in the set S represent an edge in G and then check if the size of S
-    // is larger than k. Thus, S is maximal if there exists no subset of S
-    // in G that abides the aforementioned rule.
+    /**
+     * Start of algorithm
+     * The idea of the algorithm is to find the largest subset S of graph G(V,E) where no two vertices
+     * in the set S represent an edge in G and then check if the size of S
+     * is larger than k. Thus, S is maximal if there exists no subset of S
+     * in G that abides the aforementioned rule.
+     */
     boolean isPossible() {
         createGraph();
         for (Node intersection : intersections) {
@@ -180,6 +191,9 @@ class GarbageCollection {
         return maxIndependentSet(intersections) >= binCount;
     }
 
+    /**
+     * Creates the graph by creating a bidirectional link between all adjacent nodes.
+     */
     private void createGraph() {
         Scanner input = new Scanner(System.in);
         for (int i = 0; i < streetCount; ++i) {
@@ -193,8 +207,10 @@ class GarbageCollection {
     }
 
     /**
+     * Main algorithm
      * Recursively finds the max independent set in G(V,E).
-     * @param intersections V
+     *
+     * @param intersections remaining vertices
      * @return a(G), where a is the independent number, otherwise known
      * as the size of the maximum independent set.
      */
@@ -212,11 +228,13 @@ class GarbageCollection {
         return maxIndependentSet(intersections);
     }
 
+    // Case: all remaining vertices have a degree >= 0
     private void handleZerothDegree(List<Node> intersections) {
         intersections.remove(0);
         intersectionCount--;
     }
 
+    // Case: all remaining vertices have a degree >= 1
     private int handleFirstDegree(List<Node> intersections) {
         Node neighbor = intersections.get(0).neighbors[0];
         intersections.remove(neighbor);
@@ -225,8 +243,9 @@ class GarbageCollection {
         return 1 + maxIndependentSet(intersections);
     }
 
+    // Case: all remaining vertices have a degree >= 2
     private int handleSecondDegree(List<Node> intersections) {
-        // TODO UNCLEAR
+        // TODO refactor and clean up
         Node neighbor1 = intersections.get(0).neighbors[0];
         Node neighbor2 = intersections.get(0).neighbors[1];
 
@@ -239,18 +258,16 @@ class GarbageCollection {
             intersectionCount -= 3;
             return 1 + maxIndependentSet(intersections);
         } else {
-            return Math.max(1 + maxIndependentSet())
+            List<Node> isCopyOne = getSecondDegreeHasEdgeSet(intersections);
+            List<Node> isCopyTwo = getSecondDegreeHasNoEdgeSet(intersections)
+
+            int maxCandidateOne = 1 + maxIndependentSet(isCopyOne);
+            int maxCandidateTwo = 2 + maxIndependentSet(isCopyTwo);
+            return Math.max(maxCandidateOne, maxCandidateTwo);
         }
     }
 
-    // TODO still unclear
-    private boolean remainingVisCycle(List<Node> intersections) {
-        for (int i = 1; i < intersections.size(); i++) {
-            if (intersections.get(i).getDegree() != 2) return false;
-        }
-        return true;
-    }
-
+    // Case: all remaining vertices have a degree >= 3
     private int handleThirdDegree(List<Node> intersections) {
         // a_1..a_n are adjacent vertices to vertex v.
         Node v = intersections.get(0);
@@ -266,9 +283,75 @@ class GarbageCollection {
             return 1 + maxIndependentSet(intersections);
         }
         // TODO 2.1
+        return -1;
     }
 
+    // Case: all remaining vertices have a degree = 4
     private void handleFourthDegree(List<Node> intersections) {
-
+        return;
     }
+
+    /**
+     * Helper method
+     * If every remaining adjacent node of vertex v (at index 0 in intersections) has a
+     * degree of 2, then the remaining vertices of V form a Cycle.
+     *
+     * @param intersections The remaining list of vertices.
+     * @return True if every adjacent node has a degree of exactly 2.
+     */
+    private boolean remainingVisCycle(List<Node> intersections) {
+        for (int i = 1; i < intersections.size(); i++) {
+            if (intersections.get(i).getDegree() != 2) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Helper method
+     * Case: There exists an edge between node v's adjacent nodes.
+     * (a_1, a_2) in E, where {a_1, a_2} = A(v).
+     *
+     * @param intersections the remaining vertices
+     * @return A deep copy of intersections, where vertex v and its neighbors are removed.
+     */
+    private List<Node> getSecondDegreeHasEdgeSet(List<Node> intersections) {
+        // Create a deep copy of intersections to make them independently mutable
+        List<Node> isCopyOne = new ArrayList<>(intersections);
+
+        // remove v and its two neighbors
+        isCopyOne.remove(isCopyOne.get(0).neighbors[0]);
+        isCopyOne.remove(isCopyOne.get(0).neighbors[1]);
+        isCopyOne.remove(isCopyOne.get(0));
+        return isCopyOne;
+    }
+
+    /**
+     * Helper method
+     * Case: There exists no edge between node v's adjacent nodes.
+     * (a_1, a_2) not in E, where {a_1, a_2} = A(v).
+     *
+     * @param intersections the remaining vertices
+     * @return A deep copy of intersections, where all neighbors of neighbors of v
+     * have been removed.
+     */
+    private List<Node> getSecondDegreeHasNoEdgeSet(List<Node> intersections) {
+        // Create a deep copy of intersections to make them independently mutable
+        List<Node> isCopyTwo = new ArrayList<>(intersections);
+
+        // Find all neighbors of adjacent nodes to v
+        List<Node> neighborsOfNeighbors = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            for (Node nOfn : isCopyTwo.get(0).neighbors[i].neighbors) {
+                if (nOfn != null) neighborsOfNeighbors.add(nOfn);
+            }
+        }
+
+        // Remove all neighbors of neighbors
+        for (Node neighborsOfNeighbor : neighborsOfNeighbors) {
+            isCopyTwo.remove(neighborsOfNeighbor);
+        }
+
+        return isCopyTwo;
+    }
+
 }
