@@ -1,7 +1,5 @@
 package nl.ru.s1047178;
 
-import nl.ru.s1047178.utils.TextParser;
-
 import java.util.*;
 
 /**
@@ -99,15 +97,18 @@ class GarbageCollection {
      */
     private List<Node> intersections;
 
+    private int[][] streets;
+
     /**
      * @param n number of streets
      * @param m number of intersections
      * @param k number of bins
      */
-    GarbageCollection(int n, int m, int k) {
+    GarbageCollection(int n, int m, int k,int[][] streets) {
         this.streetCount = n;
         this.intersectionCount = m;
         this.binCount = k;
+        this.streets = streets;
 
         intersections = new ArrayList<>();
         for (int i = 0; i < intersectionCount; i++) {
@@ -170,7 +171,7 @@ class GarbageCollection {
      * in G that abides the aforementioned rule.
      */
     boolean isPossible() {
-        createGraph();
+        createGraph(streets);
 
         // Sort by order of minimum degree
         Collections.sort(intersections);
@@ -188,11 +189,9 @@ class GarbageCollection {
     /**
      * Creates the graph by creating a bidirectional link between all adjacent nodes.
      */
-    private void createGraph() {
-        Scanner input = new Scanner(System.in);
+    private void createGraph(int[][] streets) {
         for (int i = 0; i < streetCount; ++i) {
-            int[] street = TextParser.getParsedInput(input.nextLine().split(" "));
-
+            int street[] = streets[i];
             Node is1 = intersections.get(street[0] - 1);
             Node is2 = intersections.get(street[1] - 1);
             is1.neighbors.add(is2);

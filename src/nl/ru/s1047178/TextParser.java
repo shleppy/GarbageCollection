@@ -1,4 +1,4 @@
-package nl.ru.s1047178.utils;
+package nl.ru.s1047178;
 
 import java.util.stream.Stream;
 
