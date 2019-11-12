@@ -471,34 +471,36 @@ class GarbageCollection {
         List<Node> complementA3 = new ArrayList<>(intersections);
         //building the compliment a1
         for (Node neighbor :a1.neighbors) {
-            complementA1.remove(neighbor);
+            removeFromV(complementA1, neighbor);
         }
-        complementA1.remove(a3);
-        complementA1.remove(a1);
+        removeFromV(complementA1, a3);
+        removeFromV(complementA1, a3);
 
         //compliment a2
         for (Node neighbor :a2.neighbors) {
-            complementA2.remove(neighbor);
+            removeFromV(complementA2, neighbor);
         }
-        complementA2.remove(a1);
-        complementA2.remove(a2);
+        removeFromV(complementA2, a1);
+        removeFromV(complementA2, a2);
 
         //compliment a3
         for (Node neighbor :a3.neighbors) {
-            complementA3.remove(neighbor);
+            removeFromV(complementA3, neighbor);
         }
-        complementA3.remove(a1);
-        complementA3.remove(a2);
-        complementA3.remove(a3);
+        removeFromV(complementA3, a1);
+        removeFromV(complementA3, a2);
+        removeFromV(complementA3, a3);
 
         List <Node> candidateCopyOne = new ArrayList<>(intersections);
-        candidateCopyOne.remove(a1);
-        candidateCopyOne.remove(a2);
-        candidateCopyOne.remove(a3);
+        removeFromV(candidateCopyOne, a1);
+        removeFromV(candidateCopyOne, a2);
+        removeFromV(candidateCopyOne, a3);
+        Collections.sort(candidateCopyOne);
         int maxCandidateOne = maxIndependentSet(candidateCopyOne);
 
         //checking if the intersections of the complements from a1 a3 <=  a2 a3
         if(intersectingNodes(complementA1,complementA3).size() <= intersectingNodes(complementA2,complementA3).size()){
+            Collections.sort(complementA3);
             int maxCandidateTwo = maxIndependentSet(complementA3);
             return Math.max(1+maxCandidateOne,2+maxCandidateTwo);
         }
