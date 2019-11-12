@@ -128,15 +128,6 @@ class GarbageCollection {
         }
 
         /**
-         * @return first null neighbor index or -1 if all neighbors are occupied.
-         */
-        int findFirstEmptyNeighbor() {
-            for (int i = 0; i < neighbors.size(); i++)
-                if (neighbors.get(i) == null) return i;
-            return -1;
-        }
-
-        /**
          * @param n Node to check if it is a neighbor
          * @return true if Node n is an adjacent node to this node, that is there exists
          * an edge between this node v and node n = (v, n) in E.
@@ -257,7 +248,7 @@ class GarbageCollection {
         Node neighbor2 = intersections.get(0).neighbors.get(1);
 
         if (remainingVisCycle(intersections)) {
-            return intersectionCount / 2;
+            return intersections.size() / 2;
         } else if (neighbor1.isNeighborOf(neighbor2)) {
             removeFromV(intersections, neighbor1);
             removeFromV(intersections, neighbor2);
@@ -386,8 +377,8 @@ class GarbageCollection {
         List<Node> isCopyOne = new ArrayList<>(intersections);
 
         // remove v and its two neighbors
-        removeFromV(isCopyOne, isCopyOne.get(0).neighbors.get(0));
         removeFromV(isCopyOne, isCopyOne.get(0).neighbors.get(1));
+        removeFromV(isCopyOne, isCopyOne.get(0).neighbors.get(0));
         removeFromV(isCopyOne, isCopyOne.get(0));
 
         Collections.sort(isCopyOne);
@@ -513,7 +504,7 @@ class GarbageCollection {
     }
 
     private List<Node> intersectingNodes(List<Node> i1, List<Node> i2){
-        List<Node> interNodes = null;
+        List<Node> interNodes = new ArrayList<>();
         for (Node n : i1){
             if(i2.contains(n)) {
                 interNodes.add(n);
