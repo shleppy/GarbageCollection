@@ -133,7 +133,7 @@ class GarbageCollection {
          * an edge between this node v and node n = (v, n) in E.
          */
         boolean isNeighborOf(Node n) {
-            for (int i = 0; i < MAX_STREETS; i++) {
+            for (int i = 0; i < getDegree(); i++) {
                 if (neighbors.get(i) == n) return true;
             }
             return false;
@@ -320,9 +320,10 @@ class GarbageCollection {
         if (intersections.size() > 5) {
             List<Node> isCopyOne = new ArrayList<>(intersections);
             Node v = isCopyOne.get(0);
-            for (Node neighbor : v.neighbors) {
-                removeFromV(isCopyOne, neighbor);
+            for (Node node : v.neighbors) {
+                removeFromV(isCopyOne, node);
             }
+
             removeFromV(isCopyOne, isCopyOne.get(0));
             Collections.sort(isCopyOne);
             int maxCandidateOne = 1 + maxIndependentSet(isCopyOne);
@@ -338,7 +339,18 @@ class GarbageCollection {
     }
 
     private void removeFromV(List<Node> intersections, Node v) {
-        intersections.remove(v);
+//        Iterator<Node> iterator = intersections.iterator();
+//        while (iterator.hasNext()) {
+//            Iterator<Node> neighbors = iterator.next().neighbors.iterator();
+//            while(neighbors.hasNext()) {
+//                if (neighbors.next() == v) {
+//                    neighbors.remove();
+//                    break;
+//                }
+//            }
+//        }
+//        intersections.remove(v);
+
         for (Node intersection : intersections) {
             for (Node neighbor : intersection.neighbors) {
                 if (neighbor == v) {
@@ -347,6 +359,7 @@ class GarbageCollection {
                 }
             }
         }
+        intersections.remove(v);
     }
 
     /**
@@ -400,7 +413,7 @@ class GarbageCollection {
 
         // Find all neighbors of adjacent nodes to v
         List<Node> neighborsOfNeighbors = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < isCopyTwo.get(0).neighbors.size(); i++) {
             for (Node nOfn : isCopyTwo.get(0).neighbors.get(i).neighbors) {
                 if (nOfn != null) neighborsOfNeighbors.add(nOfn);
             }
