@@ -175,12 +175,12 @@ class GarbageCollection {
         // Sort by order of minimum degree
         Collections.sort(intersections);
 
-        for (Node intersection : intersections) {
-            intersection.printNode();
-        }
+//        for (Node intersection : intersections) {
+//            intersection.printNode();
+//        }
 
         int independenceNumber = maxIndependentSet(intersections);
-        System.out.printf("Independence number: %d\n", independenceNumber);
+//        System.out.printf("Independence number: %d\n", independenceNumber);
 
         return independenceNumber >= binCount;
     }
@@ -342,17 +342,17 @@ class GarbageCollection {
     }
 
     private void removeFromV(List<Node> intersections, Node v) {
-//        Iterator<Node> iterator = intersections.iterator();
-//        while (iterator.hasNext()) {
-//            Iterator<Node> neighbors = iterator.next().neighbors.iterator();
-//            while(neighbors.hasNext()) {
-//                if (neighbors.next() == v) {
-//                    neighbors.remove();
-//                    break;
-//                }
-//            }
-//        }
-//        intersections.remove(v);
+        Iterator<Node> iterator = intersections.iterator();
+        while (iterator.hasNext()) {
+            Iterator<Node> neighbors = iterator.next().neighbors.iterator();
+            while(neighbors.hasNext()) {
+                if (neighbors.next() == v) {
+                    neighbors.remove();
+                    break;
+                }
+            }
+        }
+        intersections.remove(v);
 
         for (Node intersection : intersections) {
             for (Node neighbor : intersection.neighbors) {
