@@ -181,7 +181,7 @@ class GarbageCollection {
 //        }
 
         int independenceNumber = maxIndependentSet(intersections);
-//        System.out.printf("Independence number: %d\n", independenceNumber);
+        System.out.printf("Independence number: %d\n", independenceNumber);
 
         return independenceNumber >= binCount;
     }
@@ -191,7 +191,7 @@ class GarbageCollection {
      */
     private void createGraph(int[][] streets) {
         for (int i = 0; i < streetCount; ++i) {
-            int street[] = streets[i];
+            int[] street = streets[i];
             Node is1 = intersections.get(street[0] - 1);
             Node is2 = intersections.get(street[1] - 1);
             is1.neighbors.add(is2);
