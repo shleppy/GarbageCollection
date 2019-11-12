@@ -311,7 +311,10 @@ class GarbageCollection {
             return thirdDegreeOneEdgeSet(intersections, a2, a3, a1);
         }
 
-        return -1;
+        // case 3: no edges exist between neighbors
+        else {
+            return thirdDegreeNoEdgeSet(intersections, a1, a2, a3);
+        }
     }
 
     // Case: all remaining vertices have a degree = 4
@@ -454,8 +457,55 @@ class GarbageCollection {
     }
 
     private int thirdDegreeOneEdgeSet(List<Node> intersections, Node a1, Node a2, Node a3) {
-        //copy for checking set is better
-        List<Node> isCopyOne = new ArrayList<>(intersections);
+        //complements of each neighbor
+        List<Node> complementA1 = new ArrayList<>(intersections);
+        List<Node> complementA2 = new ArrayList<>(intersections);
+        List<Node> complementA3 = new ArrayList<>(intersections);
+        //building the compliment a1
+        for (Node neighbor :a1.neighbors) {
+            removeFromV(complementA1, neighbor);
+    }
+    removeFromV(complementA1, a3);
+    removeFromV(complementA1, a1);
+
+    //compliment a2
+        for (Node neighbor :a2.neighbors) {
+        removeFromV(complementA2, neighbor);
+    }
+    removeFromV(complementA2, a3);
+    removeFromV(complementA2, a2);
+
+    //compliment a3
+        for (Node neighbor :a3.neighbors) {
+        removeFromV(complementA3, neighbor);
+    }
+    removeFromV(complementA3, a1);
+    removeFromV(complementA3, a2);
+    removeFromV(complementA3, a3);
+
+    List <Node> candidateCopyOne = new ArrayList<>(intersections);
+    removeFromV(candidateCopyOne, a1);
+    removeFromV(candidateCopyOne, a2);
+    removeFromV(candidateCopyOne, a3);
+    removeFromV(candidateCopyOne, candidateCopyOne.get(0));
+        Collections.sort(candidateCopyOne);
+    int maxCandidateOne = maxIndependentSet(candidateCopyOne);
+
+        //checking if the intersections of the complements from a1 a3 <=  a2 a3
+        if(intersectingNodes(complementA1,complementA3).size() <= intersectingNodes(complementA2,complementA3).size()){
+            Collections.sort(complementA3);
+            int maxCandidateTwo = maxIndependentSet(complementA3);
+            return Math.max(1+maxCandidateOne,2+maxCandidateTwo);
+        }
+        else {
+            int maxCandidateTwo = maxIndependentSet(intersectingNodes(complementA1,complementA3));
+            int maxCandidateThree = maxIndependentSet(intersectingNodes(complementA2,complementA3));
+            return Math.max(1+maxCandidateOne,Math.max(2+maxCandidateTwo,2+maxCandidateThree));
+        }
+
+    }
+
+    private int thirdDegreeNoEdgeSet(List<Node> intersections, Node a1, Node a2, Node a3) {
         //complements of each neighbor
         List<Node> complementA1 = new ArrayList<>(intersections);
         List<Node> complementA2 = new ArrayList<>(intersections);
@@ -465,12 +515,14 @@ class GarbageCollection {
             removeFromV(complementA1, neighbor);
         }
         removeFromV(complementA1, a3);
-        removeFromV(complementA1, a3);
+        removeFromV(complementA1, a2);
+        removeFromV(complementA1, a1);
 
         //compliment a2
         for (Node neighbor :a2.neighbors) {
             removeFromV(complementA2, neighbor);
         }
+        removeFromV(complementA2, a3);
         removeFromV(complementA2, a1);
         removeFromV(complementA2, a2);
 
@@ -486,21 +538,50 @@ class GarbageCollection {
         removeFromV(candidateCopyOne, a1);
         removeFromV(candidateCopyOne, a2);
         removeFromV(candidateCopyOne, a3);
+        removeFromV(candidateCopyOne, candidateCopyOne.get(0));
         Collections.sort(candidateCopyOne);
         int maxCandidateOne = maxIndependentSet(candidateCopyOne);
 
-        //checking if the intersections of the complements from a1 a3 <=  a2 a3
-        if(intersectingNodes(complementA1,complementA3).size() <= intersectingNodes(complementA2,complementA3).size()){
-            Collections.sort(complementA3);
-            int maxCandidateTwo = maxIndependentSet(complementA3);
-            return Math.max(1+maxCandidateOne,2+maxCandidateTwo);
+        List<Node> allIntersect = intersectingNodes(intersectingNodes(complementA1,complementA2),complementA2);
+        Collections.sort(allIntersect);
+        int allIntersectSize = allIntersect.size();
+        int intersectionsSize = intersections.size();
+        //comp intersects >= V - 7
+        if(allIntersectSize >= intersectionsSize-7){
+            return Math.max(1+maxCandidateOne, maxIndependentSet(allIntersect));
         }
-        else {
-            int maxCandidateTwo = maxIndependentSet(intersectingNodes(complementA1,complementA3));
-            int maxCandidateThree = maxIndependentSet(intersectingNodes(complementA2,complementA3));
-            return Math.max(1+maxCandidateOne,Math.max(2+maxCandidateTwo,2+maxCandidateThree));
+        //comp intersects either v-8 or v-9
+        if(allIntersectSize == intersectionsSize-8 || allIntersectSize == intersectionsSize -9){
+            //intersection of the complement of a1 and a2, a1 and a3 and a2 and a3
+            List<Node> ca1Ica2 = intersectingNodes(complementA1,complementA2);
+            List<Node> ca1Ica3 = intersectingNodes(complementA1,complementA3);
+            List<Node> ca2Ica3 = intersectingNodes(complementA2,complementA3);
+
+            if (ca1Ica2.size() <= allIntersectSize+1 && ca1Ica3.size() <= allIntersectSize+1 && ca2Ica3.size() <= allIntersectSize+1){
+                return Math.max(1+maxCandidateOne, 3+ maxIndependentSet(allIntersect));
+            }
+
+            if (ca1Ica2.size() >= allIntersectSize +2){
+                return Math.max(Math.max(maxCandidateOne+1,maxIndependentSet(ca1Ica2)+2),maxIndependentSet(allIntersect)+3);
+            }
+
+            if (ca1Ica3.size() >= allIntersectSize +2){
+                return Math.max(Math.max(maxCandidateOne+1,maxIndependentSet(ca1Ica3)+2),maxIndependentSet(allIntersect)+3);
+            }
+
+            if (ca2Ica3.size() >= allIntersectSize +2){
+                return Math.max(Math.max(maxCandidateOne+1,maxIndependentSet(ca2Ica3)+2),maxIndependentSet(allIntersect)+3);
+            }
+            //this means the && in the first if should be or's
+            else {
+                return -10;
+            }
         }
 
+        //comp for everything else
+        else{
+            return (1 + maxCandidateOne);
+        }
     }
 
     private List<Node> intersectingNodes(List<Node> i1, List<Node> i2){
